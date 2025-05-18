@@ -1,0 +1,819 @@
+# twilio_config.py (Create this file)
+ACCOUNT_SID = "AC9be8ea651078164b7a547c94df319c3b"
+AUTH_TOKEN = "1772e7c63d425c172ad45ca92a183155"
+TWILIO_NUMBER = "+1 978 775 8909"  # Twilio virtual number
+ADMIN_NUMBER = "+919123144609"  # Admin's mobile numbe
+from twilio.rest import Client
+from twilio_config import ACCOUNT_SID, AUTH_TOKEN, TWILIO_NUMBER, ADMIN_NUMBER
+
+def send_sms_alert(message, to_number=ADMIN_NUMBER):
+    try:
+        client = Client(ACCOUNT_SID, AUTH_TOKEN)
+        msg = client.messages.create(
+            body=message,
+            from_=TWILIO_NUMBER,
+            to=to_number
+        )
+        return f"✅ Alert sent: SID {msg.sid}"
+    except Exception as e:
+            return f"❌ SMS Failed: {str(e)}"
+      send_sms_alert("🚨 Test Alert: This is a test message from your AI Bed & ICU Manager.")
+import sqlite3
+
+def create_medicine_table():
+    conn = sqlite3.connect('hospital.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS medicines (
+        med_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        stock INTEGER NOT NULL,
+        expiry_date TEXT,
+        diseases TEXT,
+        price REAL
+    )
+    ''')
+    conn.commit()
+    conn.close()
+
+create_medicine_table()
+def add_medicine(name, stock, expiry_date, diseases, price):
+    conn = sqlite3.connect('hospital.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO medicines (name, stock, expiry_date, diseases, price)
+        VALUES (?, ?, ?, ?, ?)
+    ''', (name, stock, expiry_date, diseases, price))
+    conn.commit()
+    conn.close()
+    return f"Medicine '{name}' added successfully!"
+def update_stock(med_id, new_stock):
+    conn = sqlite3.connect('hospital.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        UPDATE medicines SET stock = ? WHERE med_id = ?
+    ''', (new_stock, med_id))
+    conn.commit()
+    conn.close()
+    return f"Stock updated for medicine ID {med_id}."
+def get_all_medicines():
+    conn = sqlite3.connect('hospital.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM medicines')
+    medicines = cursor.fetchall()
+    conn.close()
+    return medicines
+def create_prescription_table():
+    conn = sqlite3.connect('hospital.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS prescriptions (
+        presc_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        patient_id INTEGER,
+        med_id INTEGER,
+        quantity INTEGER,
+        date TEXT,
+        FOREIGN KEY(patient_id) REFERENCES patients(patient_id),
+        FOREIGN KEY(med_id) REFERENCES medicines(med_id)
+    )
+    ''')
+    conn.commit()
+    conn.close()
+
+create_prescription_table()
+import sqlite3
+from datetime import datetime
+
+def create_medicine_table():
+    conn = sqlite3.connect('hospital.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS medicines (
+        med_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        stock INTEGER NOT NULL,
+        expiry_date TEXT,
+        diseases TEXT,
+        price REAL
+    )
+    ''')
+    conn.commit()
+    conn.close()
+
+def create_prescription_table():
+    conn = sqlite3.connect('hospital.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS prescriptions (
+        presc_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        patient_id INTEGER,
+        med_id INTEGER,
+        quantity INTEGER,
+        date TEXT
+    )
+    ''')
+    conn.commit()
+    conn.close()
+
+create_medicine_table()
+create_prescription_table()
+def add_medicine(name, stock, expiry_date, diseases, price):
+    conn = sqlite3.connect('hospital.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO medicines (name, stock, expiry_date, diseases, price)
+        VALUES (?, ?, ?, ?, ?)
+    ''', (name, stock, expiry_date, diseases, price))
+    conn.commit()
+    conn.close()
+    return f"✅ Medicine '{name}' added."
+
+def get_all_medicines():
+    conn = sqlite3.connect('hospital.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM medicines')
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+def add_prescription(patient_id, med_id, quantity):
+    date = datetime.now().strftime("%Y-%m-%d")
+    conn = sqlite3.connect('hospital.db')
+    cursor = conn.cursor()
+    
+    # Check stock
+    cursor.execute('SELECT stock FROM medicines WHERE med_id=?', (med_id,))
+    row = cursor.fetchone()
+    if not row:
+        return "❌ Medicine not found."
+    if row[0] < quantity:
+        return "❌ Insufficient stock."
+    
+    # Update stock
+    new_stock = row[0] - quantity
+    cursor.execute('UPDATE medicines SET stock=? WHERE med_id=?', (new_stock, med_id))
+    
+    # Add prescription
+    cursor.execute('''
+        INSERT INTO prescriptions (patient_id, med_id, quantity, date)
+        VALUES (?, ?, ?, ?)
+    ''', (patient_id, med_id, quantity, date))
+    
+    conn.commit()
+    conn.close()
+    return "✅ Prescription added and stock updated."
+   def add_medicine(name, stock, expiry_date, diseases, price):
+    conn = sqlite3.connect('hospital.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO medicines (name, stock, expiry_date, diseases, price)
+        VALUES (?, ?, ?, ?, ?)
+    ''', (name, stock, expiry_date, diseases, price))
+    conn.commit()
+    conn.close()
+    return f"✅ Medicine '{name}' added."
+
+def get_all_medicines():
+    conn = sqlite3.connect('hospital.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM medicines')
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+def add_prescription(patient_id, med_id, quantity):
+    date = datetime.now().strftime("%Y-%m-%d")
+    conn = sqlite3.connect('hospital.db')
+    cursor = conn.cursor()
+    
+    # Check stock
+    cursor.execute('SELECT stock FROM medicines WHERE med_id=?', (med_id,))
+    row = cursor.fetchone()
+    if not row:
+        return "❌ Medicine not found."
+    if row[0] < quantity:
+        return "❌ Insufficient stock."
+    
+    # Update stock
+    new_stock = row[0] - quantity
+    cursor.execute('UPDATE medicines SET stock=? WHERE med_id=?', (new_stock, med_id))
+    
+    # Add prescription
+    cursor.execute('''
+        INSERT INTO prescriptions (patient_id, med_id, quantity, date)
+        VALUES (?, ?, ?, ?)
+    ''', (patient_id, med_id, quantity, date))
+    
+    conn.commit()
+    conn.close()
+    return "✅ Prescription added and stock updated."
+  import gradio as gr
+import pandas as pd
+
+def display_inventory():
+    data = get_all_medicines()
+    df = pd.DataFrame(data, columns=["ID", "Name", "Stock", "Expiry", "Diseases", "Price"])
+    return df
+
+with gr.Blocks() as medicine_ui:
+    gr.Markdown("## 💊 Medicine Inventory & Prescription System")
+
+    with gr.Tab("Add Medicine"):
+        name = gr.Textbox(label="Medicine Name")
+        stock = gr.Number(label="Stock Quantity", precision=0)
+        expiry = gr.Textbox(label="Expiry Date (YYYY-MM-DD)")
+        diseases = gr.Textbox(label="Linked Diseases (comma-separated)")
+        price = gr.Number(label="Price per unit", precision=2)
+        output_add = gr.Textbox(label="Output")
+
+        btn_add = gr.Button("➕ Add Medicine")
+        btn_add.click(fn=add_medicine, 
+                      inputs=[name, stock, expiry, diseases, price],
+                      outputs=output_add)
+
+    with gr.Tab("View Inventory"):
+        inv_output = gr.Dataframe(label="Current Medicine Inventory")
+        btn_refresh = gr.Button("🔄 Refresh Inventory")
+        btn_refresh.click(fn=display_inventory, outputs=inv_output)
+
+    with gr.Tab("Create Prescription"):
+        pid = gr.Number(label="Patient ID", precision=0)
+        medid = gr.Number(label="Medicine ID", precision=0)
+        qty = gr.Number(label="Quantity", precision=0)
+        pres_output = gr.Textbox(label="Result")
+        
+        btn_pres = gr.Button("📝 Create Prescription")
+        btn_pres.click(fn=add_prescription,
+                       inputs=[pid, medid, qty],
+                       outputs=pres_output)
+
+medicine_ui.launch()
+def add_prescription(patient_id, med_id, quantity):
+    date = datetime.now().strftime("%Y-%m-%d")
+    conn = sqlite3.connect('hospital.db')
+    cursor = conn.cursor()
+    
+    cursor.execute('SELECT name, stock FROM medicines WHERE med_id=?', (med_id,))
+    row = cursor.fetchone()
+    if not row:
+        return "❌ Medicine not found."
+    
+    name, stock = row
+    if stock < quantity:
+        return "❌ Insufficient stock."
+    
+    new_stock = stock - quantity
+    cursor.execute('UPDATE medicines SET stock=? WHERE med_id=?', (new_stock, med_id))
+
+    cursor.execute('''
+        INSERT INTO prescriptions (patient_id, med_id, quantity, date)
+        VALUES (?, ?, ?, ?)
+    ''', (patient_id, med_id, quantity, date))
+    
+    conn.commit()
+    conn.close()
+    
+    # Alert if stock low
+    if new_stock <= 10:
+        send_sms_alert(f"⚠️ Low Stock Alert: '{name}' only {new_stock} units left!")
+
+    return f"✅ Prescription added. Remaining stock: {new_stock}"
+  import sqlite3
+
+def create_patients_table():
+    conn = sqlite3.connect('hospital.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS patients (
+            patient_id INTEGER PRIMARY KEY,
+            name TEXT NOT NULL,
+            age INTEGER,
+            gender TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+create_patients_table()
+def insert_test_patients():
+    conn = sqlite3.connect('hospital.db')
+    cursor = conn.cursor()
+    patients = [
+        (1, "Alice Sharma", 30, "Female"),
+        (2, "Ravi Kumar", 45, "Male"),
+        (3, "Nina Patel", 27, "Female")
+    ]
+    cursor.executemany("INSERT OR IGNORE INTO patients VALUES (?, ?, ?, ?)", patients)
+    conn.commit()
+    conn.close()
+
+insert_test_patients()
+!pip install fpdf
+import sqlite3
+from datetime import datetime
+import gradio as gr
+from fpdf import FPDF
+from twilio.rest import Client
+from twilio_config import ACCOUNT_SID, AUTH_TOKEN, TWILIO_NUMBER, ADMIN_NUMBER
+
+# ---------------- DATABASE SETUP ---------------- #
+
+def create_tables():
+    conn = sqlite3.connect("hospital.db")
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS medicines (
+            med_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            stock INTEGER,
+            price REAL
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS prescriptions (
+            presc_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            patient_id INTEGER,
+            med_id INTEGER,
+            quantity INTEGER,
+            date TEXT
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS patients (
+            patient_id INTEGER PRIMARY KEY,
+            name TEXT,
+            age INTEGER,
+            gender TEXT
+        )
+    ''')
+
+    conn.commit()
+    conn.close()
+
+create_tables()
+
+# ---------------- TWILIO ALERT ---------------- #
+
+def send_sms_alert(message, to_number=ADMIN_NUMBER):
+    try:
+        client = Client(ACCOUNT_SID, AUTH_TOKEN)
+        client.messages.create(
+            body=message,
+            from_=TWILIO_NUMBER,
+            to=to_number
+        )
+        print("✅ SMS Alert sent!")
+    except Exception as e:
+        print("❌ SMS Error:", e)
+
+# ---------------- PDF GENERATION ---------------- #
+
+def generate_pdf_prescription(patient_id, patient_name, med_name, quantity):
+    date = datetime.now().strftime("%Y-%m-%d")
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+
+    pdf.cell(200, 10, txt="Smart Clinic Prescription", ln=True, align='C')
+    pdf.ln(10)
+    pdf.cell(200, 10, txt=f"Patient ID: {patient_id}", ln=True)
+    pdf.cell(200, 10, txt=f"Patient Name: {patient_name}", ln=True)
+    pdf.cell(200, 10, txt=f"Medicine: {med_name}", ln=True)
+    pdf.cell(200, 10, txt=f"Quantity: {quantity}", ln=True)
+    pdf.cell(200, 10, txt=f"Date: {date}", ln=True)
+
+    filename = f"Prescription_{patient_id}_{date}.pdf"
+    filepath = f"/mnt/data/{filename}"
+    pdf.output(filepath)
+    return filepath
+
+# ---------------- CORE FUNCTIONS ---------------- #
+
+def add_medicine(name, stock, price):
+    conn = sqlite3.connect("hospital.db")
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO medicines (name, stock, price) VALUES (?, ?, ?)", (name, stock, price))
+    conn.commit()
+    conn.close()
+    return "✅ Medicine added!"
+
+def view_medicines():
+    conn = sqlite3.connect("hospital.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM medicines")
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+def get_patient_name(patient_id):
+    conn = sqlite3.connect("hospital.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT name FROM patients WHERE patient_id=?", (patient_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return row[0] if row else "❌ Not Found"
+
+def add_prescription(patient_id, med_id, quantity):
+    date = datetime.now().strftime("%Y-%m-%d")
+    conn = sqlite3.connect("hospital.db")
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT name, stock FROM medicines WHERE med_id=?', (med_id,))
+    row = cursor.fetchone()
+    if not row:
+        return "❌ Medicine not found."
+
+    med_name, stock = row
+    if stock < quantity:
+        return "❌ Insufficient stock."
+
+    new_stock = stock - quantity
+    cursor.execute('UPDATE medicines SET stock=? WHERE med_id=?', (new_stock, med_id))
+    cursor.execute('''
+        INSERT INTO prescriptions (patient_id, med_id, quantity, date)
+        VALUES (?, ?, ?, ?)
+    ''', (patient_id, med_id, quantity, date))
+    conn.commit()
+    conn.close()
+
+    if new_stock <= 10:
+        send_sms_alert(f"⚠️ LOW STOCK: '{med_name}' has only {new_stock} units left.")
+
+    patient_name = get_patient_name(patient_id)
+    pdf_path = generate_pdf_prescription(patient_id, patient_name, med_name, quantity)
+    return f"✅ Prescription added.\n📄 [Download PDF]({pdf_path})"
+
+# ---------------- GRADIO UI ---------------- #
+
+with gr.Blocks() as demo:
+    gr.Markdown("## 💊 Medicine Inventory & Prescription System")
+
+    with gr.Tab("➕ Add Medicine"):
+        name = gr.Textbox(label="Medicine Name")
+        stock = gr.Number(label="Stock", precision=0)
+        price = gr.Number(label="Price (INR)")
+        add_btn = gr.Button("Add Medicine")
+        med_output = gr.Textbox(label="Status")
+
+        add_btn.click(fn=add_medicine, inputs=[name, stock, price], outputs=med_output)
+
+    with gr.Tab("📦 View Medicines"):
+        view_btn = gr.Button("Show All")
+        table = gr.Dataframe(headers=["ID", "Name", "Stock", "Price"], datatype=["number", "str", "number", "number"])
+        view_btn.click(fn=view_medicines, outputs=table)
+
+    with gr.Tab("📝 Create Prescription"):
+        pid = gr.Number(label="Patient ID", precision=0)
+        pname = gr.Textbox(label="Patient Name", interactive=False)
+        pid.change(fn=get_patient_name, inputs=pid, outputs=pname)
+
+        mid = gr.Number(label="Medicine ID", precision=0)
+        qty = gr.Number(label="Quantity", precision=0)
+        presc_btn = gr.Button("Create Prescription")
+        presc_output = gr.Textbox(label="Result / PDF")
+
+        presc_btn.click(fn=add_prescription, inputs=[pid, mid, qty], outputs=presc_output)
+
+demo.launch()
+import sqlite3
+from datetime import datetime
+import gradio as gr
+from fpdf import FPDF
+from twilio.rest import Client
+from twilio_config import ACCOUNT_SID, AUTH_TOKEN, TWILIO_NUMBER, ADMIN_NUMBER
+
+# ---------------- DATABASE SETUP ---------------- #
+
+def create_tables():
+    conn = sqlite3.connect("hospital.db")
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS medicines (
+            med_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            stock INTEGER,
+            price REAL
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS prescriptions (
+            presc_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            patient_id INTEGER,
+            med_id INTEGER,
+            quantity INTEGER,
+            date TEXT
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS patients (
+            patient_id INTEGER PRIMARY KEY,
+            name TEXT,
+            age INTEGER,
+            gender TEXT
+        )
+    ''')
+
+    conn.commit()
+    conn.close()
+
+create_tables()
+
+# ---------------- TWILIO ALERT ---------------- #
+
+def send_sms_alert(message, to_number=ADMIN_NUMBER):
+    try:
+        client = Client(ACCOUNT_SID, AUTH_TOKEN)
+        client.messages.create(
+            body=message,
+            from_=TWILIO_NUMBER,
+            to=to_number
+        )
+        print("✅ SMS Alert sent!")
+    except Exception as e:
+        print("❌ SMS Error:", e)
+
+# ---------------- PDF GENERATION ---------------- #
+
+def generate_pdf_prescription(patient_id, patient_name, med_name, quantity):
+    date = datetime.now().strftime("%Y-%m-%d")
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+
+    pdf.cell(200, 10, txt="Smart Clinic Prescription", ln=True, align='C')
+    pdf.ln(10)
+    pdf.cell(200, 10, txt=f"Patient ID: {patient_id}", ln=True)
+    pdf.cell(200, 10, txt=f"Patient Name: {patient_name}", ln=True)
+    pdf.cell(200, 10, txt=f"Medicine: {med_name}", ln=True)
+    pdf.cell(200, 10, txt=f"Quantity: {quantity}", ln=True)
+    pdf.cell(200, 10, txt=f"Date: {date}", ln=True)
+
+    filename = f"Prescription_{patient_id}_{date}.pdf"
+    filepath = f"/mnt/data/{filename}"
+    pdf.output(filepath)
+    return filepath
+
+# ---------------- CORE FUNCTIONS ---------------- #
+
+def add_medicine(name, stock, price):
+    conn = sqlite3.connect("hospital.db")
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO medicines (name, stock, price) VALUES (?, ?, ?)", (name, stock, price))
+    conn.commit()
+    conn.close()
+    return "✅ Medicine added!"
+
+def view_medicines():
+    conn = sqlite3.connect("hospital.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM medicines")
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+def get_patient_name(patient_id):
+    conn = sqlite3.connect("hospital.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT name FROM patients WHERE patient_id=?", (patient_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return row[0] if row else "❌ Not Found"
+
+def add_prescription(patient_id, med_id, quantity):
+    date = datetime.now().strftime("%Y-%m-%d")
+    conn = sqlite3.connect("hospital.db")
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT name, stock FROM medicines WHERE med_id=?', (med_id,))
+    row = cursor.fetchone()
+    if not row:
+        return "❌ Medicine not found."
+
+    med_name, stock = row
+    if stock < quantity:
+        return "❌ Insufficient stock."
+
+    new_stock = stock - quantity
+    cursor.execute('UPDATE medicines SET stock=? WHERE med_id=?', (new_stock, med_id))
+    cursor.execute('''
+        INSERT INTO prescriptions (patient_id, med_id, quantity, date)
+        VALUES (?, ?, ?, ?)
+    ''', (patient_id, med_id, quantity, date))
+    conn.commit()
+    conn.close()
+
+    if new_stock <= 10:
+        send_sms_alert(f"⚠️ LOW STOCK: '{med_name}' has only {new_stock} units left.")
+
+    patient_name = get_patient_name(patient_id)
+    pdf_path = generate_pdf_prescription(patient_id, patient_name, med_name, quantity)
+    return f"✅ Prescription added.\n📄 [Download PDF]({pdf_path})"
+
+# ---------------- GRADIO UI ---------------- #
+
+with gr.Blocks() as demo:
+    gr.Markdown("## 💊 Medicine Inventory & Prescription System")
+
+    with gr.Tab("➕ Add Medicine"):
+        name = gr.Textbox(label="Medicine Name")
+        stock = gr.Number(label="Stock", precision=0)
+        price = gr.Number(label="Price (INR)")
+        add_btn = gr.Button("Add Medicine")
+        med_output = gr.Textbox(label="Status")
+
+        add_btn.click(fn=add_medicine, inputs=[name, stock, price], outputs=med_output)
+
+    with gr.Tab("📦 View Medicines"):
+        view_btn = gr.Button("Show All")
+        table = gr.Dataframe(headers=["ID", "Name", "Stock", "Price"], datatype=["number", "str", "number", "number"])
+        view_btn.click(fn=view_medicines, outputs=table)
+
+    with gr.Tab("📝 Create Prescription"):
+        pid = gr.Number(label="Patient ID", precision=0)
+        pname = gr.Textbox(label="Patient Name", interactive=False)
+        pid.change(fn=get_patient_name, inputs=pid, outputs=pname)
+
+        mid = gr.Number(label="Medicine ID", precision=0)
+        qty = gr.Number(label="Quantity", precision=0)
+        presc_btn = gr.Button("Create Prescription")
+        presc_output = gr.Textbox(label="Result / PDF")
+
+        presc_btn.click(fimport sqlite3
+from datetime import datetime
+import gradio as gr
+from fpdf import FPDF
+from twilio.rest import Client
+from twilio_config import ACCOUNT_SID, AUTH_TOKEN, TWILIO_NUMBER, ADMIN_NUMBER
+
+# ---------------- DATABASE SETUP ---------------- #
+
+def create_tables():
+    conn = sqlite3.connect("hospital.db")
+    cursor = conn.cursor()
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS medicines (
+            med_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT,
+            stock INTEGER,
+            price REAL
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS prescriptions (
+            presc_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            patient_id INTEGER,
+            med_id INTEGER,
+            quantity INTEGER,
+            date TEXT
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS patients (
+            patient_id INTEGER PRIMARY KEY,
+            name TEXT,
+            age INTEGER,
+            gender TEXT
+        )
+    ''')
+
+    conn.commit()
+    conn.close()
+
+create_tables()
+
+# ---------------- TWILIO ALERT ---------------- #
+
+def send_sms_alert(message, to_number=ADMIN_NUMBER):
+    try:
+        client = Client(ACCOUNT_SID, AUTH_TOKEN)
+        client.messages.create(
+            body=message,
+            from_=TWILIO_NUMBER,
+            to=to_number
+        )
+        print("✅ SMS Alert sent!")
+    except Exception as e:
+        print("❌ SMS Error:", e)
+
+# ---------------- PDF GENERATION ---------------- #
+
+def generate_pdf_prescription(patient_id, patient_name, med_name, quantity):
+    date = datetime.now().strftime("%Y-%m-%d")
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+
+    pdf.cell(200, 10, txt="Smart Clinic Prescription", ln=True, align='C')
+    pdf.ln(10)
+    pdf.cell(200, 10, txt=f"Patient ID: {patient_id}", ln=True)
+    pdf.cell(200, 10, txt=f"Patient Name: {patient_name}", ln=True)
+    pdf.cell(200, 10, txt=f"Medicine: {med_name}", ln=True)
+    pdf.cell(200, 10, txt=f"Quantity: {quantity}", ln=True)
+    pdf.cell(200, 10, txt=f"Date: {date}", ln=True)
+
+    filename = f"Prescription_{patient_id}_{date}.pdf"
+    filepath = f"/mnt/data/{filename}"
+    pdf.output(filepath)
+    return filepath
+
+# ---------------- CORE FUNCTIONS ---------------- #
+
+def add_medicine(name, stock, price):
+    conn = sqlite3.connect("hospital.db")
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO medicines (name, stock, price) VALUES (?, ?, ?)", (name, stock, price))
+    conn.commit()
+    conn.close()
+    return "✅ Medicine added!"
+
+def view_medicines():
+    conn = sqlite3.connect("hospital.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM medicines")
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+def get_patient_name(patient_id):
+    conn = sqlite3.connect("hospital.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT name FROM patients WHERE patient_id=?", (patient_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return row[0] if row else "❌ Not Found"
+
+def add_prescription(patient_id, med_id, quantity):
+    date = datetime.now().strftime("%Y-%m-%d")
+    conn = sqlite3.connect("hospital.db")
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT name, stock FROM medicines WHERE med_id=?', (med_id,))
+    row = cursor.fetchone()
+    if not row:
+        return "❌ Medicine not found."
+
+    med_name, stock = row
+    if stock < quantity:
+        return "❌ Insufficient stock."
+
+    new_stock = stock - quantity
+    cursor.execute('UPDATE medicines SET stock=? WHERE med_id=?', (new_stock, med_id))
+    cursor.execute('''
+        INSERT INTO prescriptions (patient_id, med_id, quantity, date)
+        VALUES (?, ?, ?, ?)
+    ''', (patient_id, med_id, quantity, date))
+    conn.commit()
+    conn.close()
+
+    if new_stock <= 10:
+        send_sms_alert(f"⚠️ LOW STOCK: '{med_name}' has only {new_stock} units left.")
+
+    patient_name = get_patient_name(patient_id)
+    pdf_path = generate_pdf_prescription(patient_id, patient_name, med_name, quantity)
+    return f"✅ Prescription added.\n📄 [Download PDF]({pdf_path})"
+
+# ---------------- GRADIO UI ---------------- #
+
+with gr.Blocks() as demo:
+    gr.Markdown("## 💊 Medicine Inventory & Prescription System")
+
+    with gr.Tab("➕ Add Medicine"):
+        name = gr.Textbox(label="Medicine Name")
+        stock = gr.Number(label="Stock", precision=0)
+        price = gr.Number(label="Price (INR)")
+        add_btn = gr.Button("Add Medicine")
+        med_output = gr.Textbox(label="Status")
+
+        add_btn.click(fn=add_medicine, inputs=[name, stock, price], outputs=med_output)
+
+    with gr.Tab("📦 View Medicines"):
+        view_btn = gr.Button("Show All")
+        table = gr.Dataframe(headers=["ID", "Name", "Stock", "Price"], datatype=["number", "str", "number", "number"])
+        view_btn.click(fn=view_medicines, outputs=table)
+
+    with gr.Tab("📝 Create Prescription"):
+        pid = gr.Number(label="Patient ID", precision=0)
+        pname = gr.Textbox(label="Patient Name", interactive=False)
+        pid.change(fn=get_patient_name, inputs=pid, outputs=pname)
+
+        mid = gr.Number(label="Medicine ID", precision=0)
+        qty = gr.Number(label="Quantity", precision=0)
+        presc_btn = gr.Button("Create Prescription")
+        presc_output = gr.Textbox(label="Result / PDF")
+
+        presc_btn.click(fn=add_prescription, inputs=[pid, mid, qty], outputs=presc_output)
+
+demo.launch()
+n=add_prescription, inputs=[pid, mid, qty], outputs=presc_output)
+
+demo.launch()
+
